@@ -62,7 +62,7 @@ architecture top_basys3_arch of top_basys3 is
         
         signal tdm_data : std_logic_vector(3 downto 0);
         signal tdm_sel : std_logic_vector(3 downto 0);
-        signal seven_seg_decoder : std_logic_vector(6 downto 0);
+        signal w_seg : std_logic_vector(6 downto 0);
         
         component controller_fsm is
 	       port(
@@ -72,13 +72,14 @@ architecture top_basys3_arch of top_basys3 is
 	     );
 	    end component controller_fsm;
 	    
-	    component clock_div is
+	    component clock_divider is
+	       generic (constant k_DIV : natural :=2);
 	       port(
 	           i_clk : in std_logic;
 	           i_reset  : in std_logic;
 	           o_clk : out std_logic
 	     );
-	    end component clock_div;
+	    end component clock_divider;
 	    
 	    component ALU is
 	       port(
@@ -131,7 +132,8 @@ begin
 	           i_adv  => btnC,
 	           o_cycle => w_cycle
 	     );
-	   inst_clock_div : clock_div
+	   inst_clock_div : clock_divider
+	       generic map (k_DIV => 100000)
 	       port map(
 	           i_clk => clk,
 	           i_reset  => btnU,
@@ -167,11 +169,34 @@ begin
 	   sevenseg_inst : sevenseg_decoder
 	       port map(
 	       i_Hex => tdm_data,
-	       o_seg_n => seg
+	       o_seg_n => w_seg
 	   ); 
 	
 	-- CONCURRENT STATEMENTS ----------------------------
+	--used gemini to help explain the concurrent statments in this lab.
+	process(clk)
+	begin
+	   if rising_edge(clk) then
+	       if btnU ='1' then
+	           i_reg_A <= (others => '0');
+	           i_reg_B <= (others => '0');
+	       else
+	           if w_cycle(1) = '1' then
+	               i_reg_A <= sw(7 downto 0);
+	           end if;
+	           if w_cycle(2) = '1' then
+	               i_reg_B <= sw(7 downto 0);
+	           end if;
+	       end if;
+	   end if;
+	end process;
 	
+	with w_cycle select
+            mux_data_o <= i_reg_A    when "0010", 
+                 i_reg_B           when "0100", 
+                 alu_result                when "1000", 
+                 "00000000"             when others;
 	
-	
+	an <= "1111" when w_cycle(0) = '1' else tdm_sel;
+	seg <="0111111" when (w_sign ='1' and tdm_sel ="0111") else w_seg;
 end top_basys3_arch;
