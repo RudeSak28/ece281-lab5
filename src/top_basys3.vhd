@@ -123,7 +123,7 @@ begin
 	-- PORT MAPS ----------------------------------------
        led(3 downto 0) <= w_cycle;
        led(15 downto 12) <= alu_o_flag;
-       led(11 downto 4) <= "0";
+       led(11 downto 4) <= "00000000";
        
        inst_controller_fsm: controller_fsm
 	       port map(

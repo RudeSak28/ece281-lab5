@@ -52,16 +52,16 @@ begin
         --doc this section
         
         with i_op select
-            w_result <= w_add(7 downto 0)     when "000", 
-                 w_sub(7 downto 0)     when "001", 
+            w_result <= w_add(7 downto 0)    when "000", 
+                 w_sub(7 downto 0)           when "001", 
                  i_A and i_B                 when "010", 
-                 i_A or i_B                 when "011", 
+                 i_A or i_B                  when "011", 
                  "00000000"             when others; 
         flag_c <=    w_add(8) when (i_op = "000") else 
                      w_sub(8) when (i_op = "001") else
                      '0';
         flag_v <=    ((i_A(7) xnor i_B(7)) and (i_A(7) xor w_add(7))) when (i_op = "000") else 
-                     ((i_A(7) xor i_B(7)) and (i_A(7) xor w_add(7))) when (i_op = "001") else
+                     ((i_A(7) xor i_B(7)) and (i_A(7) xor w_sub(7))) when (i_op = "001") else
                      '0';  
         o_result <= w_result;
         
